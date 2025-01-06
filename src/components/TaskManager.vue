@@ -32,7 +32,14 @@
 import { ref } from "vue";
 const newTask = ref("");
 const tasks = ref([]);
-tasks.value = ["タスク1", "タスク2", "タスク3"];
+tasks.value = [
+  "タスク1",
+  "タスク2",
+  "タスク3",
+  "サンプルタスク1",
+  "サンプルタスク2",
+  "サンプルタスク3",
+];
 
 const addTask = () => {
   if (newTask.value.trim()) {
