@@ -5,6 +5,26 @@
         <v-btn @click="openAddTaskDialog" color="primary">追加</v-btn>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col>
+        <v-text-field v-model="filters.name" label="タスク名でフィルタ"></v-text-field>
+      </v-col>
+      <v-col>
+        <v-text-field v-model="filters.deadlineFrom" label="締め切り開始" type="date"></v-text-field>
+      </v-col>
+      <v-col>
+        <v-text-field v-model="filters.deadlineTo" label="締め切り終了" type="date"></v-text-field>
+      </v-col>
+      <v-col>
+        <v-select v-model="filters.status" :items="statusFilterOptions" label="ステータスでフィルタ"></v-select>
+      </v-col>
+      <v-col>
+        <v-btn @click="applyFilters" color="primary">検索</v-btn>
+      </v-col>
+      <v-col>
+        <v-btn @click="clearFilters" color="secondary">クリア</v-btn>
+      </v-col>
+    </v-row>
     <v-list>
       <v-list-item-group>
         <v-list-item>
@@ -26,7 +46,7 @@
             </v-row>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item v-for="(task, index) in sortedTasks" :key="task.id">
+        <v-list-item v-for="(task, index) in filteredTasks" :key="task.id">
           <v-list-item-content>
             <v-row>
               <v-col>{{ task.name }}</v-col>
@@ -84,6 +104,7 @@
 import { ref, computed } from "vue";
 
 const statuses = ["未着手", "対応中", "完了済"];
+const statusFilterOptions = ["すべて", "完了済以外", "完了済のみ"];
 const tasks = ref([
   { id: 1, name: "タスク1", deadline: "2023-10-01", status: "未着手" },
   { id: 2, name: "タスク2", deadline: "2023-10-02", status: "対応中" },
@@ -96,6 +117,13 @@ const sortOrder = ref(1);
 const isDialogOpen = ref(false);
 const isEditing = ref(false);
 const editedTask = ref({});
+
+const filters = ref({
+  name: "",
+  deadlineFrom: "",
+  deadlineTo: "",
+  status: "すべて",
+});
 
 const openAddTaskDialog = () => {
   editedTask.value = { id: null, name: "", deadline: "", status: "" };
@@ -114,6 +142,32 @@ const sortTasks = (key) => {
     sortKey.value = key;
     sortOrder.value = 1;
   }
+};
+
+const filteredTasks = ref([]);
+
+const applyFilters = () => {
+  filteredTasks.value = sortedTasks.value.filter((task) => {
+    const matchesName = task.name.startsWith(filters.value.name);
+    const matchesDeadlineFrom = !filters.value.deadlineFrom || task.deadline >= filters.value.deadlineFrom;
+    const matchesDeadlineTo = !filters.value.deadlineTo || task.deadline <= filters.value.deadlineTo;
+    const matchesStatus =
+      filters.value.status === "すべて" ||
+      (filters.value.status === "完了済以外" && task.status !== "完了済") ||
+      (filters.value.status === "完了済のみ" && task.status === "完了済");
+
+    return matchesName && matchesDeadlineFrom && matchesDeadlineTo && matchesStatus;
+  });
+};
+
+const clearFilters = () => {
+  filters.value = {
+    name: "",
+    deadlineFrom: "",
+    deadlineTo: "",
+    status: "すべて",
+  };
+  applyFilters();
 };
 
 const sortedTasks = computed(() => {
@@ -157,7 +211,11 @@ const saveTask = () => {
     tasks.value.push(newTask);
   }
   isDialogOpen.value = false;
+  applyFilters();
 };
+
+// Initialize filteredTasks with all tasks
+applyFilters();
 </script>
 
 <style scoped>
