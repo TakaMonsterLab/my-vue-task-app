@@ -56,6 +56,9 @@
                 <v-btn @click="editTask(task)" icon>
                   <v-icon>mdi-pencil</v-icon>
                 </v-btn>
+                <v-btn @click="duplicateTask(task)" icon>
+                  <v-icon>mdi-content-copy</v-icon>
+                </v-btn>
                 <v-btn @click="removeTask(index)" icon>
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
@@ -194,6 +197,12 @@ const statusClass = (status) => {
 const editTask = (task) => {
   editedTask.value = { ...task };
   isEditing.value = true;
+  isDialogOpen.value = true;
+};
+
+const duplicateTask = (task) => {
+  editedTask.value = { ...task, id: null };
+  isEditing.value = false;
   isDialogOpen.value = true;
 };
 
