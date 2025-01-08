@@ -2,16 +2,7 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-text-field v-model="newTaskName" label="タスク名"></v-text-field>
-      </v-col>
-      <v-col>
-        <v-text-field v-model="newTaskDeadline" label="締め切り" type="date"></v-text-field>
-      </v-col>
-      <v-col>
-        <v-select v-model="newTaskStatus" :items="statuses" label="ステータス"></v-select>
-      </v-col>
-      <v-col>
-        <v-btn @click="addTask" color="primary">追加</v-btn>
+        <v-btn @click="openAddTaskDialog" color="primary">追加</v-btn>
       </v-col>
     </v-row>
     <v-list>
@@ -42,6 +33,9 @@
               <v-col>{{ task.deadline }}</v-col>
               <v-col :class="statusClass(task.status)">{{ task.status }}</v-col>
               <v-col class="d-flex justify-end">
+                <v-btn @click="editTask(task)" icon>
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
                 <v-btn @click="removeTask(index)" icon>
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
@@ -51,15 +45,44 @@
         </v-list-item>
       </v-list-item-group>
     </v-list>
+
+    <v-dialog v-model="isDialogOpen" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">{{ isEditing ? 'タスク編集' : 'タスク追加' }}</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col>
+                <v-text-field v-model="editedTask.name" label="タスク名"></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field v-model="editedTask.deadline" label="締め切り" type="date"></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-select v-model="editedTask.status" :items="statuses" label="ステータス"></v-select>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="isDialogOpen = false">キャンセル</v-btn>
+          <v-btn color="blue darken-1" text @click="saveTask">{{ isEditing ? '保存' : '追加' }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 
-const newTaskName = ref("");
-const newTaskDeadline = ref("");
-const newTaskStatus = ref("");
 const statuses = ["未着手", "対応中", "完了済"];
 const tasks = ref([
   { id: 1, name: "タスク1", deadline: "2023-10-01", status: "未着手" },
@@ -70,19 +93,14 @@ const tasks = ref([
 const sortKey = ref("");
 const sortOrder = ref(1);
 
-const addTask = () => {
-  if (newTaskName.value.trim() && newTaskDeadline.value && newTaskStatus.value) {
-    const newTask = {
-      id: tasks.value.length + 1,
-      name: newTaskName.value.trim(),
-      deadline: newTaskDeadline.value,
-      status: newTaskStatus.value,
-    };
-    tasks.value.push(newTask);
-    newTaskName.value = "";
-    newTaskDeadline.value = "";
-    newTaskStatus.value = "";
-  }
+const isDialogOpen = ref(false);
+const isEditing = ref(false);
+const editedTask = ref({});
+
+const openAddTaskDialog = () => {
+  editedTask.value = { id: null, name: "", deadline: "", status: "" };
+  isEditing.value = false;
+  isDialogOpen.value = true;
 };
 
 const removeTask = (index) => {
@@ -117,6 +135,28 @@ const statusClass = (status) => {
     default:
       return "";
   }
+};
+
+const editTask = (task) => {
+  editedTask.value = { ...task };
+  isEditing.value = true;
+  isDialogOpen.value = true;
+};
+
+const saveTask = () => {
+  if (isEditing.value) {
+    const index = tasks.value.findIndex((t) => t.id === editedTask.value.id);
+    if (index !== -1) {
+      tasks.value[index] = { ...editedTask.value };
+    }
+  } else {
+    const newTask = {
+      id: tasks.value.length + 1,
+      ...editedTask.value,
+    };
+    tasks.value.push(newTask);
+  }
+  isDialogOpen.value = false;
 };
 </script>
 
