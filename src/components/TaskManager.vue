@@ -2,11 +2,10 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-text-field v-model="newTask" label="新しいタスクを追加">
-          <template v-slot:append>
-            <v-btn @click="addTask" color="primary">追加</v-btn>
-          </template>
-        </v-text-field>
+        <v-text-field v-model="newTask" label="新しいタスクを追加"></v-text-field>
+      </v-col>
+      <v-col>
+        <v-btn @click="addTask" color="primary">追加</v-btn>
       </v-col>
     </v-row>
     <v-list>
